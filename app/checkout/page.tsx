@@ -5,12 +5,11 @@ import React from "react"
 import { useState, Suspense } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { ChevronRight, ArrowLeft, CheckCircle, Shield, CreditCard, FileText, Calendar, MapPin, User } from "lucide-react"
+import { ChevronRight, ArrowLeft, CheckCircle, Shield, ExternalLink, Calendar, MapPin, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import {
   Select,
   SelectContent,
@@ -45,9 +44,7 @@ function CheckoutContent() {
     source: "",
     acceptTerms: false,
     newsletter: false,
-    paymentMethod: "card",
   })
-  const [isSubmitting, setIsSubmitting] = useState(false)
 
   if (!bootcamp || !session) {
     return (
@@ -99,26 +96,20 @@ function CheckoutContent() {
     }
   }
 
-  const handleFinalSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const DJAMO_PAYMENT_URL = "https://pay.djamo.com/2bqug"
+
+  const handleProceedToPayment = () => {
     if (!formData.acceptTerms) {
       alert("Veuillez accepter les conditions générales de vente.")
       return
     }
-
-    setIsSubmitting(true)
-    
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-    
-    // Redirect to confirmation
-    router.push(`/confirmation?bootcamp=${bootcampSlug}&session=${sessionId}`)
+    // Open Djamo payment link in a new tab
+    window.open(DJAMO_PAYMENT_URL, "_blank", "noopener,noreferrer")
   }
 
   const steps = [
     { number: 1, label: "Informations" },
     { number: 2, label: "Paiement" },
-    { number: 3, label: "Confirmation" },
   ]
 
   return (
@@ -349,111 +340,103 @@ function CheckoutContent() {
                 )}
 
                 {step === 2 && (
-                  <form onSubmit={handleFinalSubmit}>
-                    <div className="bg-card rounded-2xl border border-border p-6 md:p-8">
-                      <h2 className="font-serif text-xl font-bold text-foreground mb-6">
-                        Mode de paiement
-                      </h2>
+                  <div className="bg-card rounded-2xl border border-border p-6 md:p-8">
+                    <h2 className="font-serif text-xl font-bold text-foreground mb-6">
+                      Paiement sécurisé via Djamo
+                    </h2>
 
-                      <RadioGroup
-                        value={formData.paymentMethod}
-                        onValueChange={(value) => handleInputChange("paymentMethod", value)}
-                        className="space-y-4"
-                      >
-                        <div
-                          className={cn(
-                            "flex items-start gap-4 p-4 rounded-xl border-2 transition-all cursor-pointer",
-                            formData.paymentMethod === "card"
-                              ? "border-violet bg-violet/5"
-                              : "border-border hover:border-violet/50"
-                          )}
-                        >
-                          <RadioGroupItem value="card" id="card" className="mt-1" />
-                          <div className="flex-1">
-                            <Label htmlFor="card" className="flex items-center gap-2 font-serif font-semibold text-foreground cursor-pointer">
-                              <CreditCard className="w-5 h-5 text-violet" />
-                              Paiement par carte
-                            </Label>
-                            <p className="font-sans text-sm text-muted-foreground mt-1">
-                              Paiement sécurisé par carte bancaire (Visa, Mastercard)
-                            </p>
-                          </div>
+                    {/* Payment info */}
+                    <div className="bg-secondary rounded-xl p-6 mb-6">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue to-violet flex items-center justify-center">
+                          <Shield className="w-5 h-5 text-white" />
                         </div>
-
-                        <div
-                          className={cn(
-                            "flex items-start gap-4 p-4 rounded-xl border-2 transition-all cursor-pointer",
-                            formData.paymentMethod === "invoice"
-                              ? "border-violet bg-violet/5"
-                              : "border-border hover:border-violet/50"
-                          )}
-                        >
-                          <RadioGroupItem value="invoice" id="invoice" className="mt-1" />
-                          <div className="flex-1">
-                            <Label htmlFor="invoice" className="flex items-center gap-2 font-serif font-semibold text-foreground cursor-pointer">
-                              <FileText className="w-5 h-5 text-violet" />
-                              Demander un devis
-                            </Label>
-                            <p className="font-sans text-sm text-muted-foreground mt-1">
-                              Pour un paiement par virement bancaire ou via votre entreprise
-                            </p>
-                          </div>
-                        </div>
-                      </RadioGroup>
-
-                      <div className="mt-8 space-y-4">
-                        <div className="flex items-start gap-3">
-                          <Checkbox
-                            id="terms"
-                            checked={formData.acceptTerms}
-                            onCheckedChange={(checked) => handleInputChange("acceptTerms", checked as boolean)}
-                          />
-                          <Label htmlFor="terms" className="font-sans text-sm text-muted-foreground leading-relaxed cursor-pointer">
-                            J&apos;accepte les{" "}
-                            <Link href="/cgv" className="text-violet hover:underline">
-                              conditions générales de vente
-                            </Link>{" "}
-                            <span className="text-destructive">*</span>
-                          </Label>
-                        </div>
-
-                        <div className="flex items-start gap-3">
-                          <Checkbox
-                            id="newsletter"
-                            checked={formData.newsletter}
-                            onCheckedChange={(checked) => handleInputChange("newsletter", checked as boolean)}
-                          />
-                          <Label htmlFor="newsletter" className="font-sans text-sm text-muted-foreground leading-relaxed cursor-pointer">
-                            Je souhaite recevoir les actualités et offres de Big Five
-                          </Label>
+                        <div>
+                          <p className="font-serif font-semibold text-foreground">Paiement sécurisé</p>
+                          <p className="font-sans text-sm text-muted-foreground">
+                            Vous serez redirigé vers la plateforme Djamo
+                          </p>
                         </div>
                       </div>
+                      <p className="font-sans text-sm text-muted-foreground leading-relaxed">
+                        En cliquant sur le bouton ci-dessous, vous serez redirigé vers la page de paiement sécurisée Djamo pour finaliser votre inscription. Vous pourrez payer par carte bancaire ou mobile money.
+                      </p>
+                    </div>
 
-                      <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-between">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => setStep(1)}
-                        >
-                          <ArrowLeft className="w-4 h-4 mr-2" />
-                          Retour
-                        </Button>
-                        <Button
-                          type="submit"
-                          disabled={!formData.acceptTerms || isSubmitting}
-                          className="bg-gradient-to-r from-blue to-violet hover:from-blue-deep hover:to-violet-dark text-white px-8"
-                        >
-                          {isSubmitting ? (
-                            "Traitement en cours..."
-                          ) : formData.paymentMethod === "card" ? (
-                            "Procéder au paiement"
-                          ) : (
-                            "Demander un devis"
-                          )}
-                        </Button>
+                    {/* Recap participant */}
+                    <div className="bg-violet/5 rounded-xl p-5 mb-6 border border-violet/10">
+                      <p className="font-sans text-sm font-medium text-violet mb-3">Vos informations</p>
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                          <span className="font-sans text-muted-foreground">Nom</span>
+                          <p className="font-sans font-medium text-foreground">{formData.firstName} {formData.lastName}</p>
+                        </div>
+                        <div>
+                          <span className="font-sans text-muted-foreground">Email</span>
+                          <p className="font-sans font-medium text-foreground">{formData.email}</p>
+                        </div>
+                        <div>
+                          <span className="font-sans text-muted-foreground">Téléphone</span>
+                          <p className="font-sans font-medium text-foreground">{formData.phone}</p>
+                        </div>
+                        {formData.company && (
+                          <div>
+                            <span className="font-sans text-muted-foreground">Entreprise</span>
+                            <p className="font-sans font-medium text-foreground">{formData.company}</p>
+                          </div>
+                        )}
                       </div>
                     </div>
-                  </form>
+
+                    {/* Terms */}
+                    <div className="space-y-4 mb-8">
+                      <div className="flex items-start gap-3">
+                        <Checkbox
+                          id="terms"
+                          checked={formData.acceptTerms}
+                          onCheckedChange={(checked) => handleInputChange("acceptTerms", checked as boolean)}
+                        />
+                        <Label htmlFor="terms" className="font-sans text-sm text-muted-foreground leading-relaxed cursor-pointer">
+                          J&apos;accepte les{" "}
+                          <Link href="/cgv" className="text-violet hover:underline">
+                            conditions générales de vente
+                          </Link>{" "}
+                          <span className="text-destructive">*</span>
+                        </Label>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <Checkbox
+                          id="newsletter"
+                          checked={formData.newsletter}
+                          onCheckedChange={(checked) => handleInputChange("newsletter", checked as boolean)}
+                        />
+                        <Label htmlFor="newsletter" className="font-sans text-sm text-muted-foreground leading-relaxed cursor-pointer">
+                          Je souhaite recevoir les actualités et offres de Big Five
+                        </Label>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex flex-col sm:flex-row gap-4 justify-between">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setStep(1)}
+                      >
+                        <ArrowLeft className="w-4 h-4 mr-2" />
+                        Retour
+                      </Button>
+                      <Button
+                        onClick={handleProceedToPayment}
+                        disabled={!formData.acceptTerms}
+                        className="bg-gradient-to-r from-blue to-violet hover:from-blue-deep hover:to-violet-dark text-white px-8"
+                      >
+                        Payer via Djamo
+                        <ExternalLink className="w-4 h-4 ml-2" />
+                      </Button>
+                    </div>
+                  </div>
                 )}
               </div>
 
