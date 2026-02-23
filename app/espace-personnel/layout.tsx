@@ -4,17 +4,18 @@ import React from "react"
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { 
-  LayoutDashboard, 
-  PlayCircle, 
-  Award, 
-  CreditCard, 
+import { useSession, signOut } from "next-auth/react"
+import {
+  LayoutDashboard,
+  PlayCircle,
+  Award,
+  CreditCard,
   Settings,
   ChevronLeft,
-  User
+  User,
+  LogOut
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { mockUser } from "@/lib/data"
 
 const sidebarLinks = [
   { href: "/espace-personnel", label: "Tableau de bord", icon: LayoutDashboard },
@@ -30,6 +31,10 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
+  const { data: session } = useSession()
+  const userName = session?.user?.name || "Utilisateur"
+  const userEmail = session?.user?.email || ""
+  const initials = userName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -37,8 +42,8 @@ export default function DashboardLayout({
       <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border h-16">
         <div className="flex items-center justify-between h-full px-4 lg:px-6">
           <div className="flex items-center gap-4">
-            <Link 
-              href="/" 
+            <Link
+              href="/"
               className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -51,16 +56,21 @@ export default function DashboardLayout({
               </span>
             </Link>
           </div>
-          
+
           <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => signOut({ callbackUrl: "/" })}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:flex items-center gap-1"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-medium text-foreground">
-                {mockUser.firstName} {mockUser.lastName}
-              </p>
-              <p className="text-xs text-muted-foreground">{mockUser.email}</p>
+              <p className="text-sm font-medium text-foreground">{userName}</p>
+              <p className="text-xs text-muted-foreground">{userEmail}</p>
             </div>
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue to-violet flex items-center justify-center text-white font-medium">
-              {mockUser.firstName[0]}{mockUser.lastName[0]}
+              {initials}
             </div>
           </div>
         </div>
@@ -72,13 +82,11 @@ export default function DashboardLayout({
           <div className="p-4">
             <div className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-blue/5 to-violet/5 border border-blue/10 mb-6">
               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue to-violet flex items-center justify-center text-white font-semibold">
-                {mockUser.firstName[0]}{mockUser.lastName[0]}
+                {initials}
               </div>
               <div>
-                <p className="font-medium text-foreground text-sm">
-                  {mockUser.firstName} {mockUser.lastName}
-                </p>
-                <p className="text-xs text-muted-foreground">Membre Premium</p>
+                <p className="font-medium text-foreground text-sm">{userName}</p>
+                <p className="text-xs text-muted-foreground">Membre</p>
               </div>
             </div>
 

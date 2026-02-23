@@ -3,6 +3,7 @@
 import React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useSession, signOut } from "next-auth/react"
 import {
   LayoutDashboard,
   Users,
@@ -15,7 +16,6 @@ import {
   LogOut,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { adminUser } from "@/lib/data"
 
 const sidebarLinks = [
   { href: "/admin", label: "Tableau de bord", icon: LayoutDashboard },
@@ -32,6 +32,9 @@ export default function AdminLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
+  const { data: session } = useSession()
+  const userName = session?.user?.name || "Admin"
+  const initials = userName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -57,11 +60,11 @@ export default function AdminLayout({
 
           <div className="flex items-center gap-3">
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-medium text-white">{adminUser.name}</p>
-              <p className="text-xs text-blue-soft">{adminUser.role === "super_admin" ? "Super Admin" : "Admin"}</p>
+              <p className="text-sm font-medium text-white">{userName}</p>
+              <p className="text-xs text-blue-soft">Admin</p>
             </div>
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gold to-gold-dark flex items-center justify-center text-blue-navy font-bold text-sm">
-              AD
+              {initials}
             </div>
           </div>
         </div>
@@ -73,13 +76,13 @@ export default function AdminLayout({
           <div className="flex-1 p-4">
             <div className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-gold/10 to-gold-dark/10 border border-gold/20 mb-6">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gold to-gold-dark flex items-center justify-center text-blue-navy font-bold text-sm">
-                AD
+                {initials}
               </div>
               <div>
-                <p className="font-medium text-foreground text-sm">{adminUser.name}</p>
+                <p className="font-medium text-foreground text-sm">{userName}</p>
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
                   <Shield className="w-3 h-3" />
-                  Super Admin
+                  Admin
                 </p>
               </div>
             </div>
@@ -111,13 +114,14 @@ export default function AdminLayout({
           </div>
 
           <div className="p-4 border-t border-border">
-            <Link
-              href="/"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            <button
+              type="button"
+              onClick={() => signOut({ callbackUrl: "/" })}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors w-full"
             >
               <LogOut className="w-5 h-5" />
-              Deconnexion
-            </Link>
+              Déconnexion
+            </button>
           </div>
         </aside>
 

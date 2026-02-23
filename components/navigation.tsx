@@ -2,12 +2,16 @@
 
 import Link from "next/link"
 import { useState } from "react"
-import { Menu, X, User } from "lucide-react"
+import { useSession, signOut } from "next-auth/react"
+import { Menu, X, User, LogIn, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
+  const { data: session } = useSession()
+
+  const dashboardHref = session?.user?.role === "admin" ? "/admin" : "/espace-personnel"
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
@@ -22,20 +26,20 @@ export function Navigation() {
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-8">
-            <Link 
-              href="/bootcamps" 
+            <Link
+              href="/bootcamps"
               className="font-sans text-sm font-medium text-foreground hover:text-violet transition-colors"
             >
               Bootcamps
             </Link>
-            <Link 
-              href="/a-propos" 
+            <Link
+              href="/a-propos"
               className="font-sans text-sm font-medium text-foreground hover:text-violet transition-colors"
             >
               À propos
             </Link>
-            <Link 
-              href="/contact" 
+            <Link
+              href="/contact"
               className="font-sans text-sm font-medium text-foreground hover:text-violet transition-colors"
             >
               Contact
@@ -44,19 +48,42 @@ export function Navigation() {
 
           {/* Desktop CTA */}
           <div className="hidden lg:flex items-center gap-4">
-            <Link 
-              href="/espace-personnel" 
-              className="flex items-center gap-2 font-sans text-sm font-medium text-foreground hover:text-violet transition-colors"
-            >
-              <User className="w-4 h-4" />
-              Mon espace
-            </Link>
-            <Button 
-              asChild
-              className="bg-gradient-to-r from-blue to-violet hover:from-blue-deep hover:to-violet-dark text-white font-medium px-6"
-            >
-              <Link href="/bootcamps">S&apos;inscrire</Link>
-            </Button>
+            {session ? (
+              <>
+                <Link
+                  href={dashboardHref}
+                  className="flex items-center gap-2 font-sans text-sm font-medium text-foreground hover:text-violet transition-colors"
+                >
+                  <User className="w-4 h-4" />
+                  {session.user?.name || "Mon espace"}
+                </Link>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => signOut({ callbackUrl: "/" })}
+                  className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Déconnexion
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="flex items-center gap-2 font-sans text-sm font-medium text-foreground hover:text-violet transition-colors"
+                >
+                  <LogIn className="w-4 h-4" />
+                  Connexion
+                </Link>
+                <Button
+                  asChild
+                  className="bg-gradient-to-r from-blue to-violet hover:from-blue-deep hover:to-violet-dark text-white font-medium px-6"
+                >
+                  <Link href="/bootcamps">S&apos;inscrire</Link>
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -74,45 +101,69 @@ export function Navigation() {
         <div
           className={cn(
             "lg:hidden overflow-hidden transition-all duration-300 ease-in-out",
-            isOpen ? "max-h-64 pb-6" : "max-h-0"
+            isOpen ? "max-h-80 pb-6" : "max-h-0"
           )}
         >
           <nav className="flex flex-col gap-4 pt-4">
-            <Link 
-              href="/bootcamps" 
+            <Link
+              href="/bootcamps"
               className="font-sans text-base font-medium text-foreground hover:text-violet transition-colors"
               onClick={() => setIsOpen(false)}
             >
               Bootcamps
             </Link>
-            <Link 
-              href="/a-propos" 
+            <Link
+              href="/a-propos"
               className="font-sans text-base font-medium text-foreground hover:text-violet transition-colors"
               onClick={() => setIsOpen(false)}
             >
               À propos
             </Link>
-            <Link 
-              href="/contact" 
+            <Link
+              href="/contact"
               className="font-sans text-base font-medium text-foreground hover:text-violet transition-colors"
               onClick={() => setIsOpen(false)}
             >
               Contact
             </Link>
-            <Link 
-              href="/espace-personnel" 
-              className="flex items-center gap-2 font-sans text-base font-medium text-foreground hover:text-violet transition-colors"
-              onClick={() => setIsOpen(false)}
-            >
-              <User className="w-4 h-4" />
-              Mon espace
-            </Link>
-            <Button 
-              asChild
-              className="bg-gradient-to-r from-blue to-violet hover:from-blue-deep hover:to-violet-dark text-white font-medium w-full mt-2"
-            >
-              <Link href="/bootcamps">S&apos;inscrire</Link>
-            </Button>
+
+            {session ? (
+              <>
+                <Link
+                  href={dashboardHref}
+                  className="flex items-center gap-2 font-sans text-base font-medium text-foreground hover:text-violet transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <User className="w-4 h-4" />
+                  {session.user?.name || "Mon espace"}
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => { setIsOpen(false); signOut({ callbackUrl: "/" }) }}
+                  className="flex items-center gap-2 font-sans text-base font-medium text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Déconnexion
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="flex items-center gap-2 font-sans text-base font-medium text-foreground hover:text-violet transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <LogIn className="w-4 h-4" />
+                  Connexion
+                </Link>
+                <Button
+                  asChild
+                  className="bg-gradient-to-r from-blue to-violet hover:from-blue-deep hover:to-violet-dark text-white font-medium w-full mt-2"
+                >
+                  <Link href="/bootcamps">S&apos;inscrire</Link>
+                </Button>
+              </>
+            )}
           </nav>
         </div>
       </div>

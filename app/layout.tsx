@@ -2,6 +2,7 @@ import React from "react"
 import type { Metadata } from 'next'
 import { Josefin_Sans, Poppins } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import { SessionProvider } from '@/components/session-provider'
 import './globals.css'
 
 const _josefinSans = Josefin_Sans({ 
@@ -48,7 +49,9 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body className={`font-sans antialiased`}>
-        {children}
+        <SessionProvider>
+          {children}
+        </SessionProvider>
         <Analytics />
       </body>
     </html>
