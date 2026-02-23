@@ -96,6 +96,29 @@ function CheckoutContent() {
     }
   }
 
+  /**
+   * ====================================================================
+   * INTÉGRATION DJAMO - LIEN DE PAIEMENT
+   * ====================================================================
+   * 
+   * APPROCHE ACTUELLE : Lien de paiement statique (pay.djamo.com/2bqug)
+   * - Le lien statique Djamo ne supporte PAS de query parameters
+   *   (montant, email, nom, etc. ne peuvent pas être passés dans l'URL).
+   * - Le montant est configuré côté Djamo dans le dashboard.
+   * - On sauvegarde les infos du participant en localStorage pour la
+   *   page de confirmation.
+   * 
+   * UPGRADE RECOMMANDÉ : Djamo Collection API (Charge API)
+   * - Endpoint: POST /v1/charges
+   * - Permet de passer: amount, externalId, description, metadata,
+   *   onCompletedRedirectionUrl, onCanceledRedirectionUrl
+   * - Retourne un paymentUrl dynamique unique par transaction
+   * - Nécessite un backend (API Key + X-Company-Id côté serveur)
+   * - Webhooks disponibles sur le topic "charge/events" pour confirmer
+   *   le paiement automatiquement.
+   * - Doc: https://docs.djamo.com/api/collection.html
+   * ====================================================================
+   */
   const DJAMO_PAYMENT_URL = "https://pay.djamo.com/2bqug"
 
   const handleProceedToPayment = () => {
@@ -103,13 +126,50 @@ function CheckoutContent() {
       alert("Veuillez accepter les conditions générales de vente.")
       return
     }
-    // Open Djamo payment link in a new tab
+
+    // Sauvegarder les informations de la commande en localStorage
+    // pour les récupérer sur la page de confirmation
+    const orderData = {
+      participant: {
+        civility: formData.civility,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        company: formData.company,
+        position: formData.position,
+      },
+      bootcamp: {
+        slug: bootcampSlug,
+        title: bootcamp.title,
+        price: bootcamp.price,
+        duration: bootcamp.duration,
+        format: bootcamp.format,
+      },
+      session: {
+        id: sessionId,
+        dateStart: session.dateStart,
+        dateEnd: session.dateEnd,
+        city: session.city,
+        trainer: session.trainer,
+        format: session.format,
+      },
+      orderedAt: new Date().toISOString(),
+      newsletter: formData.newsletter,
+    }
+    localStorage.setItem("bf_pending_order", JSON.stringify(orderData))
+
+    // Ouvrir le lien de paiement Djamo dans un nouvel onglet
     window.open(DJAMO_PAYMENT_URL, "_blank", "noopener,noreferrer")
+
+    // Passer à l'étape de confirmation de paiement
+    setStep(3)
   }
 
   const steps = [
     { number: 1, label: "Informations" },
     { number: 2, label: "Paiement" },
+    { number: 3, label: "Confirmation" },
   ]
 
   return (
@@ -434,6 +494,95 @@ function CheckoutContent() {
                       >
                         Payer via Djamo
                         <ExternalLink className="w-4 h-4 ml-2" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {step === 3 && (
+                  <div className="bg-card rounded-2xl border border-border p-6 md:p-8">
+                    <div className="text-center mb-8">
+                      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-violet/10 flex items-center justify-center">
+                        <ExternalLink className="w-8 h-8 text-violet" />
+                      </div>
+                      <h2 className="font-serif text-xl font-bold text-foreground mb-2">
+                        Finalisez votre paiement sur Djamo
+                      </h2>
+                      <p className="font-sans text-muted-foreground">
+                        La page de paiement Djamo s&apos;est ouverte dans un nouvel onglet.
+                        Complétez le paiement puis revenez ici.
+                      </p>
+                    </div>
+
+                    {/* Instructions */}
+                    <div className="bg-secondary rounded-xl p-6 mb-6">
+                      <h3 className="font-serif font-semibold text-foreground mb-4">Comment procéder :</h3>
+                      <ol className="space-y-3">
+                        <li className="flex items-start gap-3">
+                          <div className="w-6 h-6 rounded-full bg-violet text-white flex items-center justify-center shrink-0 mt-0.5">
+                            <span className="font-serif text-xs font-bold">1</span>
+                          </div>
+                          <p className="font-sans text-sm text-foreground">
+                            Sur la page Djamo, choisissez votre moyen de paiement (Djamo, Orange Money, Wave, Moov, MTN)
+                          </p>
+                        </li>
+                        <li className="flex items-start gap-3">
+                          <div className="w-6 h-6 rounded-full bg-violet text-white flex items-center justify-center shrink-0 mt-0.5">
+                            <span className="font-serif text-xs font-bold">2</span>
+                          </div>
+                          <p className="font-sans text-sm text-foreground">
+                            Effectuez le paiement de <strong>{bootcamp.price.toLocaleString('fr-FR')} FCFA</strong>
+                          </p>
+                        </li>
+                        <li className="flex items-start gap-3">
+                          <div className="w-6 h-6 rounded-full bg-violet text-white flex items-center justify-center shrink-0 mt-0.5">
+                            <span className="font-serif text-xs font-bold">3</span>
+                          </div>
+                          <p className="font-sans text-sm text-foreground">
+                            Une fois le paiement confirmé, cliquez sur le bouton ci-dessous
+                          </p>
+                        </li>
+                      </ol>
+                    </div>
+
+                    {/* Recap */}
+                    <div className="bg-violet/5 rounded-xl p-5 mb-6 border border-violet/10">
+                      <p className="font-sans text-sm font-medium text-violet mb-2">Récapitulatif</p>
+                      <p className="font-sans text-sm text-foreground">
+                        <strong>{formData.firstName} {formData.lastName}</strong> — {bootcamp.title}
+                      </p>
+                      <p className="font-sans text-sm text-muted-foreground">
+                        {formData.email} • {formData.phone}
+                      </p>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex flex-col gap-3">
+                      <Button
+                        asChild
+                        className="bg-gradient-to-r from-blue to-violet hover:from-blue-deep hover:to-violet-dark text-white px-8 w-full"
+                      >
+                        <Link href={`/confirmation?bootcamp=${bootcampSlug}&session=${sessionId}`}>
+                          <CheckCircle className="w-4 h-4 mr-2" />
+                          J&apos;ai effectué mon paiement
+                        </Link>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => window.open(DJAMO_PAYMENT_URL, "_blank", "noopener,noreferrer")}
+                        className="w-full"
+                      >
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        Rouvrir la page de paiement Djamo
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => setStep(2)}
+                        className="w-full text-muted-foreground"
+                      >
+                        <ArrowLeft className="w-4 h-4 mr-2" />
+                        Retour
                       </Button>
                     </div>
                   </div>

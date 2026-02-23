@@ -1,13 +1,42 @@
 "use client"
 
-import { Suspense } from "react"
+import { Suspense, useEffect, useState } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { CheckCircle, Calendar, MapPin, User, Mail, ArrowRight, Share2, Download } from "lucide-react"
+import { CheckCircle, Calendar, MapPin, User, Mail, ArrowRight, Share2, Download, Phone, Building } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { getBootcampBySlug, getSessionById } from "@/lib/data"
+
+interface OrderData {
+  participant: {
+    civility: string
+    firstName: string
+    lastName: string
+    email: string
+    phone: string
+    company: string
+    position: string
+  }
+  bootcamp: {
+    slug: string
+    title: string
+    price: number
+    duration: string
+    format: string
+  }
+  session: {
+    id: string
+    dateStart: string
+    dateEnd: string
+    city: string
+    trainer: string
+    format: string
+  }
+  orderedAt: string
+  newsletter: boolean
+}
 
 function ConfirmationContent() {
   const searchParams = useSearchParams()
@@ -17,6 +46,26 @@ function ConfirmationContent() {
   
   const bootcamp = bootcampSlug ? getBootcampBySlug(bootcampSlug) : null
   const session = sessionId ? getSessionById(sessionId) : null
+
+  // Récupérer les données de commande sauvegardées lors du checkout
+  const [orderData, setOrderData] = useState<OrderData | null>(null)
+  
+  useEffect(() => {
+    const stored = localStorage.getItem("bf_pending_order")
+    if (stored) {
+      try {
+        const data: OrderData = JSON.parse(stored)
+        setOrderData(data)
+        // Déplacer vers les commandes confirmées et nettoyer
+        const confirmedOrders = JSON.parse(localStorage.getItem("bf_confirmed_orders") || "[]")
+        confirmedOrders.push({ ...data, confirmedAt: new Date().toISOString() })
+        localStorage.setItem("bf_confirmed_orders", JSON.stringify(confirmedOrders))
+        localStorage.removeItem("bf_pending_order")
+      } catch {
+        // Ignorer les erreurs de parsing
+      }
+    }
+  }, [])
 
   if (!bootcamp || !session) {
     return (
@@ -90,7 +139,24 @@ function ConfirmationContent() {
                 <Mail className="w-5 h-5 text-blue shrink-0 mt-0.5" />
                 <div>
                   <p className="font-sans text-sm text-foreground">
-                    Un email de confirmation a été envoyé à votre adresse email avec tous les détails de votre inscription.
+                    {orderData?.participant?.email ? (
+                      <>Un email de confirmation sera envoyé à <strong>{orderData.participant.email}</strong> avec tous les détails de votre inscription.</>
+                    ) : (
+                      <>Un email de confirmation a été envoyé à votre adresse email avec tous les détails de votre inscription.</>
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              {/* Payment Notice */}
+              <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/30 rounded-xl p-4 mb-8 flex items-start gap-3">
+                <CheckCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-sans text-sm font-medium text-amber-800 dark:text-amber-300 mb-1">
+                    Paiement en cours de vérification
+                  </p>
+                  <p className="font-sans text-xs text-amber-700 dark:text-amber-400">
+                    Votre paiement via Djamo sera vérifié par notre équipe. Vous recevrez une confirmation définitive par email sous 24h. En cas de problème, contactez-nous.
                   </p>
                 </div>
               </div>
@@ -159,6 +225,37 @@ function ConfirmationContent() {
                       </p>
                     </div>
                   </div>
+
+                  {/* Participant info from localStorage */}
+                  {orderData?.participant && (
+                    <div className="border-t border-border pt-4 mt-4">
+                      <p className="font-sans text-sm font-medium text-muted-foreground mb-3">Participant</p>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-3">
+                          <User className="w-4 h-4 text-violet" />
+                          <span className="font-sans text-sm text-foreground">
+                            {orderData.participant.civility === "mr" ? "M." : "Mme"} {orderData.participant.firstName} {orderData.participant.lastName}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Mail className="w-4 h-4 text-violet" />
+                          <span className="font-sans text-sm text-foreground">{orderData.participant.email}</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Phone className="w-4 h-4 text-violet" />
+                          <span className="font-sans text-sm text-foreground">{orderData.participant.phone}</span>
+                        </div>
+                        {orderData.participant.company && (
+                          <div className="flex items-center gap-3">
+                            <Building className="w-4 h-4 text-violet" />
+                            <span className="font-sans text-sm text-foreground">
+                              {orderData.participant.company}{orderData.participant.position ? ` — ${orderData.participant.position}` : ""}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 

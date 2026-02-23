@@ -797,6 +797,168 @@ export function getVideosByBootcamp(bootcampSlug: string): CourseVideo[] {
   return courseVideos.filter((v) => v.bootcampSlug === bootcampSlug)
 }
 
+// Admin Types and Mock Data
+export interface AdminUser {
+  id: string
+  email: string
+  name: string
+  role: "admin" | "super_admin"
+}
+
+export interface Enrollment {
+  id: string
+  userId: string
+  userName: string
+  userEmail: string
+  userPhone: string
+  bootcampSlug: string
+  sessionId: string
+  enrolledAt: string
+  status: "confirmed" | "pending" | "cancelled"
+  paymentStatus: "paid" | "pending" | "refunded"
+  amount: number
+}
+
+export const adminUser: AdminUser = {
+  id: "admin-001",
+  email: "admin@bigfive.ci",
+  name: "Admin Big Five",
+  role: "super_admin",
+}
+
+export const allEnrollments: Enrollment[] = [
+  {
+    id: "enroll-001",
+    userId: "user-001",
+    userName: "Aminata Diallo",
+    userEmail: "aminata.diallo@example.com",
+    userPhone: "+225 07 12 34 56 78",
+    bootcampSlug: "social-media-management-avance",
+    sessionId: "smm-mars-2025",
+    enrolledAt: "2025-02-15",
+    status: "confirmed",
+    paymentStatus: "paid",
+    amount: 450000,
+  },
+  {
+    id: "enroll-002",
+    userId: "user-001",
+    userName: "Aminata Diallo",
+    userEmail: "aminata.diallo@example.com",
+    userPhone: "+225 07 12 34 56 78",
+    bootcampSlug: "marketing-digital-fondamentaux",
+    sessionId: "md-avril-2025",
+    enrolledAt: "2025-01-20",
+    status: "confirmed",
+    paymentStatus: "paid",
+    amount: 350000,
+  },
+  {
+    id: "enroll-003",
+    userId: "user-002",
+    userName: "Kouame Yao",
+    userEmail: "kouame.yao@email.com",
+    userPhone: "+225 05 98 76 54 32",
+    bootcampSlug: "social-media-management-avance",
+    sessionId: "smm-mars-2025",
+    enrolledAt: "2025-02-20",
+    status: "confirmed",
+    paymentStatus: "paid",
+    amount: 450000,
+  },
+  {
+    id: "enroll-004",
+    userId: "user-003",
+    userName: "Marie Kouassi",
+    userEmail: "marie.kouassi@orange.ci",
+    userPhone: "+225 01 23 45 67 89",
+    bootcampSlug: "creation-contenu-video",
+    sessionId: "video-avril-2025",
+    enrolledAt: "2025-03-01",
+    status: "confirmed",
+    paymentStatus: "paid",
+    amount: 300000,
+  },
+  {
+    id: "enroll-005",
+    userId: "user-004",
+    userName: "Ibrahim Traore",
+    userEmail: "ibrahim.t@gmail.com",
+    userPhone: "+225 07 55 44 33 22",
+    bootcampSlug: "marketing-digital-fondamentaux",
+    sessionId: "md-avril-2025",
+    enrolledAt: "2025-03-05",
+    status: "pending",
+    paymentStatus: "pending",
+    amount: 350000,
+  },
+  {
+    id: "enroll-006",
+    userId: "user-005",
+    userName: "Fatou Bamba",
+    userEmail: "fatou.bamba@jumia.ci",
+    userPhone: "+225 01 11 22 33 44",
+    bootcampSlug: "social-media-management-avance",
+    sessionId: "smm-avril-2025",
+    enrolledAt: "2025-03-10",
+    status: "confirmed",
+    paymentStatus: "paid",
+    amount: 450000,
+  },
+  {
+    id: "enroll-007",
+    userId: "user-006",
+    userName: "Sekou Konate",
+    userEmail: "sekou.k@yahoo.fr",
+    userPhone: "+225 05 66 77 88 99",
+    bootcampSlug: "creation-contenu-video",
+    sessionId: "video-avril-2025",
+    enrolledAt: "2025-03-12",
+    status: "cancelled",
+    paymentStatus: "refunded",
+    amount: 300000,
+  },
+  {
+    id: "enroll-008",
+    userId: "user-007",
+    userName: "Aissata Coulibaly",
+    userEmail: "aissata.c@outlook.com",
+    userPhone: "+225 07 99 88 77 66",
+    bootcampSlug: "social-media-management-avance",
+    sessionId: "smm-mai-2025",
+    enrolledAt: "2025-03-15",
+    status: "confirmed",
+    paymentStatus: "paid",
+    amount: 450000,
+  },
+  {
+    id: "enroll-009",
+    userId: "user-008",
+    userName: "Moussa Diarra",
+    userEmail: "moussa.d@gmail.com",
+    userPhone: "+225 05 12 34 56 78",
+    bootcampSlug: "creation-contenu-video",
+    sessionId: "video-mai-2025",
+    enrolledAt: "2025-03-18",
+    status: "pending",
+    paymentStatus: "pending",
+    amount: 300000,
+  },
+  {
+    id: "enroll-010",
+    userId: "user-009",
+    userName: "Adjoua Koffi",
+    userEmail: "adjoua.k@entreprise.ci",
+    userPhone: "+225 01 55 66 77 88",
+    bootcampSlug: "marketing-digital-fondamentaux",
+    sessionId: "md-avril-2025",
+    enrolledAt: "2025-03-20",
+    status: "confirmed",
+    paymentStatus: "paid",
+    amount: 350000,
+  },
+]
+
 export function getUserEnrollmentWithBootcamp(enrollment: UserEnrollment) {
   const bootcamp = getBootcampBySlug(enrollment.bootcampSlug)
   const session = getSessionById(enrollment.sessionId)
